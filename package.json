@@ -1,0 +1,23 @@
+{
+  "name": "facelibrary",
+  "version": "1.0.0",
+  "description": "Library to ease the user of the face API of Azure",
+  "main": "index.js",
+  "scripts": {
+    "browserify": "browserify index.js -o index.bundle.js",
+    "generate-docs": "node_modules/.bin/jsdoc -c jsdoc.json",
+    "test": "jest --no-cache"
+  },
+  "author": "alexvales111@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "babelify": "^10.0.0",
+    "browserify": "^16.2.3",
+    "docdash": "^1.1.0",
+    "jsdoc": "^3.6.2"
+  }
+}
