@@ -1,4 +1,8 @@
-#Facelibrary
+# Microsoft Face API: Javascript client library and Samples 
+
+It has support only for the PersonGroup and Persons, but feel free to add the missing ones
+
+If you want you can explore the docs here  [https://alevale.github.io/cognitive-face-js/](https://alevale.github.io/cognitive-face-js/)
 
 This library is a wrapper around the face API from Azure.
 
