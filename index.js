@@ -1,0 +1,250 @@
+const axios = require('axios')
+
+class FaceApiTranslator {
+    /**
+     * Constructor for the Azure FaceApi
+     * @param {object} config Initial global configuration for the library, will be default values for some internal
+     *     calls unless overwritten.
+     * @param {string} config.subscriptionKey The subscription key.
+     * @param {string=} config.personGroupId The email of the user.
+     * @param {string=} [config.recognitionModel='recognition_02'] The model for recognition.
+     *     call
+     */
+    constructor({ subscriptionKey, personGroupId, recognitionModel = 'recognition_02' }) {
+        if (!subscriptionKey) {
+
+        }
+        this.baseURL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'
+        this.subscriptionKey = subscriptionKey
+        this.personGroupId = personGroupId
+        this.recognitionModel = recognitionModel
+    }
+
+    /**
+     * This creates a group of persons, it cointains nothing more than a descriptive name, a description for the
+     * group and persons. The person group is the element that you are going to train when you want to be
+     * able to identify pictures in a group of people.
+     * @param personGroup The person group details
+     * @param {string} [personGroup.personGroupId=this.personGroupId] The person group identifier
+     * @param {string} personGroup.name The name that you will give to the group
+     * @param {string} personGroup.userData The userData of the group
+     * @param {string} [personGroup.recognitionModel=this.recognitionModel] The model to use when identifying
+     *     people
+     * @returns {AxiosPromise}
+     */
+    createPersonGroup({ personGroupId = this.personGroupId, name, userData, recognitionModel = this.recognitionModel }) {
+
+        const stringifiedData = typeof userData === 'string' ? userData : JSON.stringify(userData)
+
+        return axios({
+            method: 'put',
+            url: `${this.baseURL}persongroups/${personGroupId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+            },
+            data: {
+                name: name,
+                userData: stringifiedData,
+                recognitionModel: recognitionModel
+            }
+        })
+    }
+
+    /**
+     * Get a list of the person groups that you have in your account
+     * @param {object} opts The search options
+     * @param {number} [opts.top=1000] The maximum groups
+     * @param {boolean} [opts.returnRecognitionModel=true] Send true if you want to get the recognition model used per
+     *     group
+     * @returns {AxiosPromise}
+     */
+    getPersonGroup({ top = 1000, returnRecognitionModel = true }) {
+        return axios({
+            method: 'get',
+            url: `${this.baseURL}persongroups?top=${top}&returnRecognitionModel=${returnRecognitionModel}`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+            }
+        })
+    }
+
+    /**
+     * Creates a new person inside a person group
+     * @param {object} person The person object that you want to send to the api
+     * @param {string} [person.personGroupId=this.personGroupId] Group id that the person will belong to, you
+     *     can get this from the list personGroup or from the configuration in the app
+     * @param {string} person.name Name of the person
+     * @param {object|string} person.userData - Data of the person
+     * @returns {AxiosPromise}
+     */
+    createNewPerson({ personGroupId = this.personGroupId, name, userData }) {
+
+        // NOTE: The data that we are sending to the API needs to be a string 20190515:Alevale
+        const stringifiedData = typeof userData === 'string' ? userData : JSON.stringify(userData)
+
+        return axios({
+            method: 'post',
+            url: `${this.baseURL}persongroups/${personGroupId}/persons`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+            },
+            data: {
+                name,
+                userData: stringifiedData
+            }
+        })
+    }
+
+    /**
+     * Adds a face picture to a person
+     * @param {object} image The image that you want to send to the API
+     * @param {string} [image.personGroupId=this.personGroupId] personGroupId Group id that the person already belongs to,
+     *     you can get this from the list personGroup or from the configuration in the app
+     * @param {string} image.personId The id of the person you are going to add the faces to
+     * @param {string} image.faceUrl The url from which you get the face
+     * @returns {AxiosPromise}
+     */
+    addImageToPerson({ personGroupId = this.personGroupId, personId, faceUrl }) {
+        return axios({
+            method: 'post',
+            url: `${this.baseURL}persongroups/${personGroupId}/persons/${personId}/persistedFaces`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+            },
+            data: {
+                url: faceUrl
+            }
+        })
+    }
+
+    /**
+     * Trains the group to recognise it's faces
+     * @param {object=} opts The search options
+     * @param {string} [opts.personGroupId=this.personGroupId] Group id that you want to train
+     * @returns {AxiosPromise}
+     */
+    trainPersonGroup({ personGroupId = this.personGroupId } = {}) {
+        return axios({
+            method: 'post',
+            url: `${this.baseURL}persongroups/${personGroupId}/train`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+            }
+        })
+    }
+
+    /**
+     * Gets the status in which the training is
+     * @param {object=} opts The search options
+     * @param {string} [opts.personGroupId=this.personGroupId] personGroupId - Group id that you want to get the status of
+     *     the training
+     * @returns {AxiosPromise}
+     */
+    getTrainingStatus({ personGroupId = this.personGroupId } = {}) {
+        return axios({
+            method: 'get',
+            url: `${this.baseURL}persongroups/${personGroupId}/training`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+            }
+        })
+    }
+
+    /**
+     * Gets a faceid that you can use later based on the image that you send
+     * @param {object} face The face that you want to detect. You need to send either faceUrl or faceBlob
+     * @param {boolean} [face.returnFaceId=true] returnFaceId
+     * @param {boolean} [face.returnFaceLandmarks=false] returnFaceLandmarks
+     * @param {string} [face.recognitionModel=this.recognitionModel] recognitionModel - The model to use when identifying
+     *     people
+     * @param {boolean} [face.returnRecognitionModel=true] returnRecognitionModel
+     * @param {string} face.faceUrl - The url that hosts the face of the person we are trying to use
+     * @param {string} face.faceBlob - The blob containing the face (typically from a canvas.toBlob() function)
+     * @returns {AxiosPromise}
+     */
+    detectAFace({ returnFaceId = true, returnFaceLandmarks = false, recognitionModel = this.recognitionModel, returnRecognitionModel = true, faceUrl, faceBlob }) {
+        if (faceUrl) {
+            return axios({
+                method: 'post',
+                url: `${this.baseURL}detect?returnFaceId=${returnFaceId}&returnFaceLandmarks=${returnFaceLandmarks}&recognitionModel=${recognitionModel}&returnRecognitionModel=${returnRecognitionModel}`,
+                headers: {
+                    'Ocp-Apim-Subscription-Key': this.subscriptionKey
+                },
+                data: {
+                    url: faceUrl
+                }
+            })
+        }
+        if (faceBlob) {
+            return axios({
+                method: 'post',
+                url: `${this.baseURL}detect?returnFaceId=${returnFaceId}&returnFaceLandmarks=${returnFaceLandmarks}&recognitionModel=${recognitionModel}&returnRecognitionModel=${returnRecognitionModel}`,
+                headers: {
+                    'Ocp-Apim-Subscription-Key': this.subscriptionKey,
+                    'Content-Type': 'application/octet-stream'
+
+                },
+                data: faceBlob
+            })
+
+        }
+    }
+
+    /**
+     * Gets the person id that matches the face that we detected
+     * @param {object=} data - The payload that you send to the indentify endpoint
+     * @param {object} picture Contains the properties from the picture that you want to analise, mostly the faceId
+     * @param {string} [picture.personGroupId=this.personGroupId] personGroupId - Group that you know the person is in
+     * @param {array|string} picture.faceIds - Faces that you are trying to identify (you got this from the detect face
+     *     endpoint)
+     * @param {number} [picture.candidates=1] candidates - Candidates that can be proposed per face analysed
+     * @param {number} [picture.confidence=0.4] confidence - Minimum confidence to have a candidate returned
+     * @returns {AxiosPromise}
+     */
+    identifyAPicture(data = undefined, { personGroupId = this.personGroupId, faceIds, candidates = 1, confidence = 0.4 }) {
+        const inputData = data || {
+            'personGroupId': personGroupId,
+            'faceIds': typeof faceIds === 'string' ? [faceIds] : faceIds,
+            'maxNumOfCandidatesReturned': candidates,
+            'confidenceThreshold': confidence
+        }
+
+        return axios({
+            method: 'post',
+            url: `${this.baseURL}identify`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+
+            },
+            data: inputData
+        })
+    }
+
+    /**
+     * Gets the person details from a person id in a group
+     * @param {object} candidate Contains the candidate that has been found from the identification
+     * @param {string} [candidate.personGroupId=this.personGroupId] Group that you know the person is in
+     * @param {string} candidate.personId Person id returned by the identify endpoint
+     * @returns {AxiosPromise}
+     */
+    getPersonDetails({ personGroupId, personId }) {
+        return axios({
+            method: 'get',
+            url: `${this.baseURL}persongroups/${personGroupId || this.personGroupId}/persons/${personId}`,
+            headers: {
+                'Ocp-Apim-Subscription-Key': this.subscriptionKey
+
+            }
+        })
+    }
+}
+
+//
+// if (window){
+//     window.FaceApiTranslator = FaceApiTranslator
+// }
+
+if (module && module.exports) {
+    module.exports = FaceApiTranslator
+}
