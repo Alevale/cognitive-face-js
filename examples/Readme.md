@@ -1,47 +1,33 @@
-// NOTE: We are going to be using the same person group across the whole demo, otherwise you can also list and get the
-// one you are interested in.
-// We are also going to create everything from the scratch and we are going to see how good the recognisement is
-// 20190515:Alevale
+If you want to import a person into the group that we have for the FACE recognition demo you can use the file [importAndIdentify](importAndIdentify.js) with the correct credentials.
+
+You can see the KEYS that you need in the demo (by inspecting the code) in the page [https://test.elitechnology.com/facedemo/](https://test.elitechnology.com/facedemo/)  
+
+To add the files, since they need to be something that can be served via a URL, the best is to serve them with your favorite STATIC server let's say PYTHON simpleHTTPServer or with express
+and then have them tunneled with NGROK, so that Azure is able to access the picture from that person.
+
+It should look something similar to this.
+
+```js
+// NOTE: We are going to be using the same person group across the whole demo 20190515:Alevale
 
 const FaceApiTranslator = require('../index')
 
 // NOTE: We are going to make the setup of the faces and people here, just as an example 20190516:Alevale
 const people = [
     {
-        name: 'Person1',
+        name: 'SOMEONE',
         userData: {
-            email: 'person@example.com',
-            username: 'something',
-            some: 'more random data'
+            email: 'SOMEONE@cxcompany.com',
+            username: 'SOMEONE'
         },
         pictures: [
-            'http://example.com/pictur1.jpg'
+            'https://t-dialog-development-1.eu.ngrok.io/picture1.jpg',
+            'https://t-dialog-development-1.eu.ngrok.io/picture2.jpg',
+            'https://t-dialog-development-1.eu.ngrok.io/picture3.jpg',
+            'https://t-dialog-development-1.eu.ngrok.io/picture4.jpg',
+            'https://t-dialog-development-1.eu.ngrok.io/picture5.jpg'
         ],
-        testPicture: 'http://example.com/test1picture.jpg'
-    },
-    {
-        name: 'Person2',
-        userData: {
-            email: 'Person2@example.com',
-            username: 'something',
-            some: 'more random data'
-        },
-        pictures: [
-            'http://example.com/picture2.jpg'
-        ],
-        testPicture: 'http://example.com/test2picture.jpg'
-    },
-    {
-        name: 'Person3',
-        userData: {
-            email: 'Person3@example.com',
-            username: 'something',
-            some: 'more random data'
-        },
-        pictures: [
-            'http://example.com/picture3.jpg'
-        ],
-        testPicture: 'http://example.com/test3picture.jpg'
+        testPicture: 'https://t-dialog-development-1.eu.ngrok.io/picture1.jpg'
     }
 ]
 
@@ -57,8 +43,8 @@ const importPeopleAndIdentifyThem = async (people) => {
         subscriptionKey,
         personGroupId
     } = {
-        subscriptionKey: 'XXXXXXXXXXXXXXXXXXX',
-        personGroupId: 'some_group_in_which_to_put_this_people'
+        subscriptionKey: 'GET THIS FROM THE DEMO PAGE IN THE LINK PROVIDED',
+        personGroupId: 'GET THIS FROM THE DEMO PAGE IN THE LINK PROVIDED'
     }
 
     try {
@@ -66,12 +52,6 @@ const importPeopleAndIdentifyThem = async (people) => {
         const faceApi = new FaceApiTranslator({
             subscriptionKey,
             personGroupId
-        })
-
-        // NOTE: Creates a new group 20190515:Alevale
-        await faceApi.createPersonGroup({
-            name: 'some_name_for_the_group',
-            userData: 'Some_data_for_the_group'
         })
 
         // NOTE: Iterate through the passed people 20190515:Alevale
@@ -127,10 +107,8 @@ const importPeopleAndIdentifyThem = async (people) => {
                     personId: candidate.personId
                 })
                 console.log()
-                console.log()
                 console.log('recognised', data)
                 console.log('Person passed was', person.name)
-                console.log()
                 console.log()
             }
         }
@@ -142,3 +120,4 @@ const importPeopleAndIdentifyThem = async (people) => {
 }
 
 importPeopleAndIdentifyThem(people)
+```

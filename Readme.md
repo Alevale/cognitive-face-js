@@ -10,4 +10,4 @@ It exposes some of the methods to be able to interact with the API.
 
 You can find the docs under the docs folder
 
-If you want to have some examples on how to use it you can head to the [examples](/examples) folder 
+If you want to have some examples on how to use it you can head to the [examples](/examples) folder, there is a README there that should help you understand what you need

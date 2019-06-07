@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "browserify": "browserify index.js -o index.bundle.js",
-    "generate-docs": "node_modules/.bin/jsdoc -c jsdoc.json",
+    "generate-docs": "node_modules/.bin/jsdoc -c jsdoc.json --package package.json",
     "test": "jest --no-cache"
   },
   "author": "alexvales111@gmail.com",
